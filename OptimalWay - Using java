@@ -1,0 +1,128 @@
+
+PVector v1;
+int totalcities = 6;
+int[] order = new int[totalcities];
+PVector[] vectorarray = new PVector[totalcities];
+float recDist;
+int[] bestEver = new int[totalcities];
+int count = 0 ;
+int total_tries;
+double percentage;
+
+void setup() {
+  size(600,600);
+  for (int i = 0; i< vectorarray.length;i++){
+    v1 = new PVector(random(width),random(height/2));                  //Create random Vectors array
+    vectorarray[i] = v1;
+    order[i] = i;
+  }
+  
+  total_tries = calc_factorial(totalcities);                          // Calc for the percentage later 
+  float d = calcDist(vectorarray, order);                             // Calc the Distance 
+  recDist = d;
+  System.arraycopy(order, 0, bestEver, 0, totalcities);               //  Create new copy for the best try - first time
+  
+}
+
+void draw() {
+  background(0);
+  //frameRate(2);
+  stroke(255);
+  fill(255);
+  for (int i=0; i < vectorarray.length;i++){
+    ellipse(vectorarray[i].x,vectorarray[i].y,10,10);                 // Draw the ellipses correspond with the vectors
+  }
+  
+  
+  
+  stroke(255,0,255);
+  strokeWeight(4);
+  noFill();
+  beginShape();
+  for (int i=0; i < order.length;i++){                               // Draw the lines between the ellipses(The bestEver)
+    int n = bestEver[i];
+    vertex(vectorarray[n].x,vectorarray[n].y);
+  }
+  endShape();
+  
+  translate(0,height/2);
+  stroke(255);
+  strokeWeight(2);
+  noFill();
+  beginShape();
+  for (int i=0; i < order.length;i++){                         // Draw the lines between the ellipses(all tries)
+    int n = order[i];
+    vertex(vectorarray[n].x,vectorarray[n].y);
+  }
+  endShape();
+  
+  float d = calcDist(vectorarray, order);                      // Calc distance again for all the tries
+  if (d > recDist){
+    recDist = d;
+    System.arraycopy(order, 0, bestEver, 0, totalcities); 
+  }
+  float percent = 100 * ((float) count / (float) total_tries);              // Draw the text - %Percentage completed
+  text(nf(percent, 0, 2) + "% completed", 20, height / 2 - 50);
+  lex_order();
+}
+
+float calcDist(PVector points[], int order[]){
+  float sum = 0;
+  for (int i = 0; i < points.length-1; i++){
+    int cityAIndex = order[i];
+    PVector cityA = points[cityAIndex];
+    int cityBIndex = order[i+1];
+    PVector cityB = points[cityBIndex];
+    // Now Calc the d and add it to sum.
+    float d = dist(cityA.x,cityA.y,cityB.x,cityB.y);
+    sum += d;
+  }
+  return sum;
+}
+
+void lex_order(){                          //Implement the lex order algorithm   
+  count++;
+  // STEP 1 
+  int largestI = -1;
+  for (int i = 0; i < order.length - 1; i++) {
+    if (order[i] < order[i + 1]) {
+      largestI = i;
+    }
+  }
+  if (largestI == -1) {
+    noLoop();
+    print("finished");
+  }
+
+  // STEP 2
+  int largestJ = -1;
+  for (int j = 0; j < order.length; j++) {
+    if (order[largestI] < order[j]) {
+      largestJ = j;
+    }
+  }
+
+  // STEP 3
+  swap_2(order, largestI, largestJ);
+  // STEP 4: reverse from largestI + 1 to the end
+  int size = order.length - largestI - 1;
+  int[] endArray = new int[size];
+  arrayCopy(order, largestI + 1, endArray, 0, size);
+  endArray = reverse(endArray);
+  arrayCopy(endArray, 0, order, largestI+1, size);
+}
+
+void swap_2(int[] a, int i, int j) {                                  // Swap function for the lex order
+  int temp = a[i];
+  a[i] = a[j];
+  a[j] = temp;
+}
+
+int calc_factorial(int n){                                            // Factorial calculation for the percentage
+  if (n==1){
+    return 1;
+  }
+  else{
+    return n * calc_factorial(n-1);
+  }
+}
